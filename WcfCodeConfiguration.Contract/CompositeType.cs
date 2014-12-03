@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace WcfCodeConfiguration
+namespace WcfCodeConfiguration.Contract
 {
     [DataContract]
     public class CompositeType

@@ -1,6 +1,6 @@
-﻿using System.ServiceModel;
+using System.ServiceModel;
 
-namespace WcfCodeConfiguration
+namespace WcfCodeConfiguration.Contract
 {
     [ServiceContract]
     public interface IEchoService

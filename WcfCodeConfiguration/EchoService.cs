@@ -1,4 +1,5 @@
 ﻿using System;
+using WcfCodeConfiguration.Contract;
 
 namespace WcfCodeConfiguration
 {
