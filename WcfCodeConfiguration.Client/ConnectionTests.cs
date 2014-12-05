@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.WindowsAzure;
+﻿using Microsoft.WindowsAzure;
 using NUnit.Framework;
 using WcfCodeConfiguration.Contract;
 using WcfCodeConfiguration.Helpers;
@@ -10,15 +9,13 @@ namespace WcfCodeConfiguration.Client
     {
         private ChannelFactory<IEchoService> _channelFactory;
         private string _hostName;
-        private int _port;
         private IEchoService _service;
 
         [TestFixtureSetUp]
         public void TestFixtureSetUp()
         {
             _hostName = CloudConfigurationManager.GetSetting("HostName");
-            _port = Convert.ToInt32(CloudConfigurationManager.GetSetting("Port"));
-            _channelFactory = new ChannelFactory<IEchoService>(_hostName, _port);
+            _channelFactory = new ChannelFactory<IEchoService>(_hostName);
         }
 
         [SetUp]

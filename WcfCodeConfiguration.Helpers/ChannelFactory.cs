@@ -7,54 +7,34 @@ using System.ServiceModel.Security;
 
 namespace WcfCodeConfiguration.Helpers
 {
-    public class ChannelFactory<T>
+    public class ChannelFactory<TChannel>
     {
-        private static IDictionary<string, int> _wellKnownPorts = new Dictionary<string, int>
+        private const string DnsName = "localhost";
+
+        // ReSharper disable once StaticFieldInGenericType
+        private static readonly IDictionary<string, int> Ports = new Dictionary<string, int>
         {
-            {"EchoService", 50001}
+            {"IEchoService", 50001}
         };
 
-        private readonly System.ServiceModel.ChannelFactory<T> _channelFactory;
+        private readonly System.ServiceModel.ChannelFactory<TChannel> _channelFactory;
 
-        public ChannelFactory(string hostName, int port)
-            : this(new SimpleServiceNameResolver(), hostName, port, "localhost")
-        {
-        }
-
-        public ChannelFactory(
-            IServiceNameResolver serviceNameResolver,
-            string hostName,
-            int port,
-            string dnsName)
+        public ChannelFactory(string hostName)
         {
             var uri = new Uri(string.Format("net.tcp://{0}:{1}/{2}.svc",
                                             hostName,
-                                            GetWellKnownPort(),
-                                            serviceNameResolver.Resolve<T>()));
-            var address = new EndpointAddress(uri, new DnsEndpointIdentity(dnsName));
+                                            GetPort<TChannel>(),
+                                            typeof (TChannel).Name));
+            var address = new EndpointAddress(uri, new DnsEndpointIdentity(DnsName));
             var binding = CreateNetTcpBinding();
             _channelFactory = CreateChannelFactory(binding, address);
         }
 
-        private static int GetWellKnownPort()
-        {
-            var serviceName = typeof (T).Name.Substring(1);
-            int port;
-            if (_wellKnownPorts.TryGetValue(serviceName, out port))
-            {
-                return port;
-            }
-
-            throw new Exception(string.Format(
-                "No known port for service {0}",
-                serviceName));
-        }
-
-        private static System.ServiceModel.ChannelFactory<T> CreateChannelFactory(
+        private static System.ServiceModel.ChannelFactory<TChannel> CreateChannelFactory(
             Binding binding,
             EndpointAddress address)
         {
-            var channelFactory = new System.ServiceModel.ChannelFactory<T>(
+            var channelFactory = new System.ServiceModel.ChannelFactory<TChannel>(
                 binding,
                 address);
 
@@ -70,7 +50,7 @@ namespace WcfCodeConfiguration.Helpers
             return channelFactory;
         }
 
-        public T CreateChannel()
+        public TChannel CreateChannel()
         {
             return _channelFactory.CreateChannel();
         }
@@ -84,6 +64,11 @@ namespace WcfCodeConfiguration.Helpers
                     Transport = {ClientCredentialType = TcpClientCredentialType.None}
                 }
             };
+        }
+
+        private static int GetPort<T>()
+        {
+            return Ports[typeof (T).Name];
         }
     }
 }
