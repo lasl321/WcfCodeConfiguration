@@ -59,6 +59,10 @@
       <Project>{48E0B78B-F1F7-44DA-9740-E340966BE10D}</Project>
       <Name>WcfCodeConfiguration.Contract</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WcfCodeConfiguration.Helpers\WcfCodeConfiguration.Helpers.csproj">
+      <Project>{e94721b5-1918-48a6-94fb-e850e403e739}</Project>
+      <Name>WcfCodeConfiguration.Helpers</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

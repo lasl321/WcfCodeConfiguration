@@ -1,28 +1,36 @@
 ﻿using System;
-using System.ServiceModel;
-using System.ServiceModel.Description;
-using System.ServiceModel.Security;
 using Microsoft.WindowsAzure;
 using NUnit.Framework;
 using WcfCodeConfiguration.Contract;
+using WcfCodeConfiguration.Helpers;
 
 namespace WcfCodeConfiguration.Client
 {
     public class ConnectionTests
     {
-        private string _host;
+        private ChannelFactory<IEchoService> _channelFactory;
+        private string _hostName;
+        private int _port;
+        private IEchoService _service;
+
+        [TestFixtureSetUp]
+        public void TestFixtureSetUp()
+        {
+            _hostName = CloudConfigurationManager.GetSetting("HostName");
+            _port = Convert.ToInt32(CloudConfigurationManager.GetSetting("Port"));
+            _channelFactory = new ChannelFactory<IEchoService>(_hostName, _port);
+        }
 
         [SetUp]
         public void SetUp()
         {
-            _host = CloudConfigurationManager.GetSetting("Host");
+            _service = _channelFactory.CreateChannel();
         }
 
         [Test]
         public void ShouldConnectToServer()
         {
-            var service = GetInstance(_host);
-            var data = service.GetData(1111);
+            var data = _service.GetData(1111);
 
             Assert.That(data, Is.EqualTo("You entered: 1111"));
         }
@@ -30,8 +38,7 @@ namespace WcfCodeConfiguration.Client
         [Test]
         public void ShouldConnectToServer2()
         {
-            var service = GetInstance(_host);
-            var data = service.GetDataUsingDataContract(new CompositeType
+            var data = _service.GetDataUsingDataContract(new CompositeType
             {
                 BoolValue = true,
                 StringValue = "FooBar"
@@ -43,26 +50,6 @@ namespace WcfCodeConfiguration.Client
                             BoolValue = true,
                             StringValue = "FooBarSuffix"
                         }));
-        }
-
-        private static IEchoService GetInstance(string host)
-        {
-            var uri = new Uri(string.Format("net.tcp://{0}:50001/EchoService.svc", host));
-            var address = new EndpointAddress(uri, new DnsEndpointIdentity("localhost"));
-            var binding = new NetTcpBinding(SecurityMode.Transport)
-            {
-                Security =
-                {
-                    Transport = {ClientCredentialType = TcpClientCredentialType.None}
-                }
-            };
-            var factory = new ChannelFactory<IEchoService>(binding, address);
-            var endpointBehavior = factory.Endpoint.EndpointBehaviors[typeof (ClientCredentials)];
-            var clientCredentials = (ClientCredentials) endpointBehavior;
-            clientCredentials.ServiceCertificate.Authentication.CertificateValidationMode =
-                X509CertificateValidationMode.None;
-
-            return factory.CreateChannel();
         }
     }
 }
