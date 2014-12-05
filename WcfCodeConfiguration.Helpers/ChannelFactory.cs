@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
@@ -11,20 +10,26 @@ namespace WcfCodeConfiguration.Helpers
     {
         private const string DnsName = "localhost";
 
-        // ReSharper disable once StaticFieldInGenericType
-        private static readonly IDictionary<string, int> Ports = new Dictionary<string, int>
-        {
-            {"IEchoService", 50001}
-        };
-
         private readonly System.ServiceModel.ChannelFactory<TChannel> _channelFactory;
+        private readonly ChannelPorts _channelPorts = new ChannelPorts();
 
         public ChannelFactory(string hostName)
         {
-            var uri = new Uri(string.Format("net.tcp://{0}:{1}/{2}.svc",
+            if (hostName == null)
+            {
+                throw new ArgumentNullException("hostName");
+            }
+
+            var channelType = typeof (TChannel);
+            var port = _channelPorts[channelType];
+            var path = string.Format("{0}.svc", channelType.Name);
+            var uri = new Uri(string.Format("net.tcp://{0}:{1}/{2}",
                                             hostName,
-                                            GetPort<TChannel>(),
-                                            typeof (TChannel).Name));
+                                            port,
+                                            path));
+
+            // TODO Validate URI.
+
             var address = new EndpointAddress(uri, new DnsEndpointIdentity(DnsName));
             var binding = CreateNetTcpBinding();
             _channelFactory = CreateChannelFactory(binding, address);
@@ -64,11 +69,6 @@ namespace WcfCodeConfiguration.Helpers
                     Transport = {ClientCredentialType = TcpClientCredentialType.None}
                 }
             };
-        }
-
-        private static int GetPort<T>()
-        {
-            return Ports[typeof (T).Name];
         }
     }
 }
